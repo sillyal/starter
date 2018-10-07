@@ -1,4 +1,4 @@
-package starter
+package game
 
 type State interface {
 	Next() State
