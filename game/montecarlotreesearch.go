@@ -15,7 +15,7 @@ type MonteCarloTreeSearch struct {
 }
 
 type TrivialChoice struct {
-	Count int `json:"count"`
+	Count int `json:"choices"`
 }
 
 func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reason) {
@@ -32,7 +32,7 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reas
 	for count := 0; current != nil && count < mcts.Round; count += 1 {
 		actions := current.state.ActionsAvailable()
 		for _, action := range actions {
-			child := &Node{parent: current, action: action}
+			child := &Node{parent: current, Action: action}
 			current.children = append(current.children, child)
 
 			nextState := current.state.Clone().TakeAction(action, mcts).Next()
@@ -58,10 +58,10 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reas
 
 	if len(origin.children) > 0 {
 		if len(origin.children) == 1 {
-			return origin.children[0].action, origin.children
+			return origin.children[0].Action, origin.children
 		}
 		sort.Sort(ByN(origin.children))
-		best := origin.children[0].action
+		best := origin.children[0].Action
 		return best, origin.children
 	}
 
@@ -70,7 +70,7 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reas
 
 type Node struct {
 	parent   *Node
-	action   Action `json:"action"`
+	Action   Action `json:"action"`
 	state    ActionPending
 	children []*Node
 	W        int `json:"w"`
