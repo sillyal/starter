@@ -35,7 +35,7 @@ func (state *SkippingState) ActionsAvailable() []Action {
 	return []Action{&SkipN{2}, &SkipN{3}}
 }
 
-func (state *SkippingState) TakeAction(action Action) State {
+func (state *SkippingState) TakeAction(action Action, reason Reason) State {
 	state.skipN = action.(*SkipN)
 	return state
 }
@@ -51,12 +51,12 @@ type SkipN struct {
 type TakeFirst struct {
 }
 
-func (takeFirst *TakeFirst) ChooseAction(actionPending ActionPending) Action {
+func (takeFirst *TakeFirst) ChooseAction(actionPending ActionPending) (Action, Reason) {
 	actions := actionPending.ActionsAvailable()
 	if len(actions) == 0 {
-		return nil
+		return nil, takeFirst
 	} else {
-		return actions[0]
+		return actions[0], takeFirst
 	}
 }
 

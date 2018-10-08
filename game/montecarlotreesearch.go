@@ -14,15 +14,19 @@ type MonteCarloTreeSearch struct {
 	Round    int
 }
 
-func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) Action {
+type TrivialChoice struct {
+	Count int `json:"count"`
+}
+
+func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reason) {
 	if actionsAvailable := root.ActionsAvailable(); len(actionsAvailable) < 2 {
 		if len(actionsAvailable) == 1 {
-			return actionsAvailable[0]
+			return actionsAvailable[0], &TrivialChoice{1}
 		} else {
-			return nil
+			return nil, &TrivialChoice{0}
 		}
 	}
-	nodes := []*Node{}
+	var nodes []*Node
 	origin := &Node{state: root, children: []*Node{}}
 	current := origin
 	for count := 0; current != nil && count < mcts.Round; count += 1 {
@@ -31,7 +35,7 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) Action {
 			child := &Node{parent: current, action: action}
 			current.children = append(current.children, child)
 
-			nextState := current.state.Clone().TakeAction(action).Next()
+			nextState := current.state.Clone().TakeAction(action, mcts).Next()
 			value := mcts.Feedback.Evaluate(nextState, root.(State))
 			child.backfill(value)
 
@@ -54,22 +58,23 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) Action {
 
 	if len(origin.children) > 0 {
 		if len(origin.children) == 1 {
-			return origin.children[0].action
+			return origin.children[0].action, origin.children
 		}
 		sort.Sort(ByN(origin.children))
 		best := origin.children[0].action
-		return best
+		return best, origin.children
 	}
-	return nil
+
+	return nil, origin.children
 }
 
 type Node struct {
 	parent   *Node
-	action   Action
+	action   Action `json:"action"`
 	state    ActionPending
 	children []*Node
-	W        int
-	N        int
+	W        int `json:"w"`
+	N        int `json:"n"`
 }
 
 func (node *Node) backfill(W int) {

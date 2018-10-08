@@ -32,7 +32,7 @@ func (state *TestState) ActionsAvailable() []Action {
 	return state.actions
 }
 
-func (state *TestState) TakeAction(action Action) State {
+func (state *TestState) TakeAction(action Action, reason Reason) State {
 	return &TestState{state.playing, action.(*ActionFavors).player, state.actions}
 }
 
@@ -48,6 +48,6 @@ func TestMonteCarloTreeSearch_ChooseAction(t *testing.T) {
 	feedback := &SimpleFeedback{}
 	mcts := &MonteCarloTreeSearch{feedback, 2}
 	state := &TestState{playing: 1, actions: []Action{&ActionFavors{1}, &ActionFavors{2}}}
-	action := mcts.ChooseAction(state)
+	action, _ := mcts.ChooseAction(state)
 	assert.Equal(t, 1, action.(*ActionFavors).player)
 }

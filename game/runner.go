@@ -7,14 +7,17 @@ type State interface {
 type Action interface {
 }
 
+type Reason interface {
+}
+
 type ActionPending interface {
 	ActionsAvailable() []Action
-	TakeAction(action Action) State
+	TakeAction(action Action, reason Reason) State
 	Clone() ActionPending
 }
 
 type Strategy interface {
-	ChooseAction(actionPending ActionPending) Action
+	ChooseAction(actionPending ActionPending) (Action, Reason)
 }
 
 type Runner struct {
@@ -30,9 +33,9 @@ func (runner *Runner) Run(state State) {
 		runner.States = append(runner.States, state)
 
 		if actionPending, ok := state.(ActionPending); ok {
-			action := runner.Strategy.ChooseAction(actionPending)
+			action, reason := runner.Strategy.ChooseAction(actionPending)
 
-			state = actionPending.TakeAction(action)
+			state = actionPending.TakeAction(action, reason)
 		}
 		state = state.Next()
 	}
