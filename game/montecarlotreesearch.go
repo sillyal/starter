@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"math/rand"
 	"sort"
 )
 
@@ -47,10 +48,18 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reas
 
 		if len(nodes) > 0 {
 			if len(nodes) > 1 {
-				sort.Sort(ByU(nodes))
+				dest := make([]*Node, len(nodes))
+				perm := rand.Perm(len(nodes))
+				for i, v := range perm {
+					dest[v] = nodes[i]
+				}
+				sort.Sort(ByU(dest))
+				current = dest[0]
+				nodes = dest[1:]
+			} else {
+				current = nodes[0]
+				nodes = nodes[1:]
 			}
-			current = nodes[0]
-			nodes = nodes[1:]
 		} else {
 			current = nil
 		}
@@ -73,8 +82,10 @@ type Node struct {
 	Action   Action `json:"action"`
 	state    ActionPending
 	children []*Node
-	W        int `json:"w"`
-	N        int `json:"n"`
+	W        int     `json:"w"`
+	N        int     `json:"n"`
+	U        float64 `json:"u"`
+	calc     bool
 }
 
 func (node *Node) backfill(W int) {
@@ -83,11 +94,16 @@ func (node *Node) backfill(W int) {
 	if node.parent != nil {
 		node.parent.backfill(W)
 	}
+	node.calc = false
 }
 
-func (node *Node) U() float64 {
-	return float64(node.W)/float64(node.N) +
-		math.Sqrt(math.Log(float64(node.parent.N))/float64(node.N))
+func (node *Node) getU() float64 {
+	if !node.calc {
+		node.U = float64(node.W)/float64(node.N) +
+			math.Sqrt(math.Log(float64(node.parent.N))/float64(node.N))
+		node.calc = true
+	}
+	return node.U
 }
 
 type ByU []*Node
@@ -101,7 +117,7 @@ func (byu ByU) Swap(i, j int) {
 }
 
 func (byu ByU) Less(i, j int) bool {
-	return byu[i].U() > byu[j].U()
+	return byu[i].getU() > byu[j].getU()
 }
 
 type ByN []*Node
