@@ -2,7 +2,6 @@ package game
 
 import (
 	"math"
-	"math/rand"
 	"sort"
 )
 
@@ -48,18 +47,10 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reas
 
 		if len(nodes) > 0 {
 			if len(nodes) > 1 {
-				dest := make([]*Node, len(nodes))
-				perm := rand.Perm(len(nodes))
-				for i, v := range perm {
-					dest[v] = nodes[i]
-				}
-				sort.Sort(ByU(dest))
-				current = dest[0]
-				nodes = dest[1:]
-			} else {
-				current = nodes[0]
-				nodes = nodes[1:]
+				sort.Sort(ByU(nodes))
 			}
+			current = nodes[0]
+			nodes = nodes[1:]
 		} else {
 			current = nil
 		}
