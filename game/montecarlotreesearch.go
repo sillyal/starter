@@ -39,7 +39,7 @@ func (mcts *MonteCarloTreeSearch) ChooseAction(root ActionPending) (Action, Reas
 			value := mcts.Feedback.Evaluate(nextState, root.(State))
 			child.backfill(value)
 
-			child.state = nextActionPendingState(nextState)
+			child.state = nextActionPendingState(current.state.Clone().TakeAction(action, mcts).Next())
 			if child.state != nil {
 				nodes = append(nodes, child)
 			}
