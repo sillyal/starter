@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func Upload(s string) {
+func Upload(s string, props map[string]string) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, error := writer.CreateFormFile("file", time.Now().Format("20060102150405")+".txt")
@@ -24,7 +24,18 @@ func Upload(s string) {
 		panic(fmt.Sprintln("Fail to write to upload logs to server", error))
 	}
 	fmt.Printf("Wrote %d bytes\n", count)
+
 	w.Flush()
+
+	if props != nil {
+		for key, value := range props {
+			field, err := writer.CreateFormField(key)
+			if err != nil {
+				panic(fmt.Sprintln("Fail to write field to upload logs", err))
+			}
+			field.Write([]byte(value))
+		}
+	}
 
 	err := writer.Close()
 	if err != nil {
