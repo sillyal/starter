@@ -30,13 +30,12 @@ func (runner *Runner) Run(state State) {
 		panic("Strategy is required for a runner")
 	}
 	for state != nil {
-		runner.States = append(runner.States, state)
-
 		if actionPending, ok := state.(ActionPending); ok {
 			action, reason := runner.Strategy.ChooseAction(actionPending)
 
 			state = actionPending.TakeAction(action, reason)
 		}
+		runner.States = append(runner.States, state)
 		state = state.Next()
 	}
 }
